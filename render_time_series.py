@@ -9,7 +9,7 @@ import pytz
 
 from pathlib import Path
 from matplotlib.animation import FFMpegFileWriter
-from typing import Dict, List, Tuple
+from typing import List
 
 IMAGE_WIDTH = 1024
 IMAGE_HEIGHT = 1024
@@ -19,13 +19,13 @@ def main(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
     sample_freq: str,
+    image_file_path: Path,
     output_file_name: str,
 ):
 
     # Read all the satellite images (that are named with a date time) and create a new data series that selects
     # the closest time for the specified frame interval
-    image_file_path: Path = Path("/Volumes/WD/full_disk_ahi_true_color")
-    image_list: List[Path] = list(image_file_path.glob("20*.jpg"))
+    image_list: List[Path] = list(image_file_path.glob("*.jpg"))
     image_index: List[pd.Timestamp] = []
     for filepath in image_list:
         file_name: str = os.path.basename(filepath)
@@ -72,7 +72,7 @@ def main(
                 f"Datetime\n{time_stamp}",
                 fontsize=32,
                 horizontalalignment="center",
-                color="gold",
+                color="tomato",
             )
 
             file_writer.grab_frame()
@@ -89,11 +89,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "sample_freq", help="The sample frequency as a Pandas time interval string"
     )
+    parser.add_argument("image_file_path", help="The name of the path with the timestamped images")
     parser.add_argument("output_file_name", help="The name of the movie file to output")
     args = parser.parse_args()
     main(
         iso8601.parse_date(args.start_time),
         iso8601.parse_date(args.end_time),
         args.sample_freq,
+        Path(args.image_file_path),
         args.output_file_name,
     )
