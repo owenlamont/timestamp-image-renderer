@@ -9,7 +9,7 @@ import pytz
 
 from pathlib import Path
 from matplotlib.animation import FFMpegFileWriter
-from typing import List
+from typing import List, Optional, Tuple
 
 IMAGE_WIDTH = 1024
 IMAGE_HEIGHT = 1024
@@ -19,9 +19,15 @@ def main(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
     sample_freq: str,
+    bounds: Optional[str],
     image_file_path: Path,
     output_file_name: str,
 ):
+
+    img_bounds: Optional[Tuple[int, ...]] = None
+    if bounds is not None:
+        img_bounds = tuple([int(i) for i in bounds.strip(" \t()").split(",")])
+
 
     # Read all the satellite images (that are named with a date time) and create a new data series that selects
     # the closest time for the specified frame interval
@@ -63,7 +69,10 @@ def main(
             # Render the image
             image_index = image_df.index.get_loc(time_stamp, method="nearest")
             satellite_image: np.ndarray = plt.imread(image_df.iloc[image_index, 0])
-            img_axes.imshow(satellite_image)
+            if img_bounds is not None:
+                img_axes.imshow(satellite_image[img_bounds[1]:img_bounds[3],img_bounds[0]:img_bounds[2]])
+            else:
+                img_axes.imshow(satellite_image)
 
             # Render the time of day text
             clock_axes.text(
@@ -89,6 +98,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "sample_freq", help="The sample frequency as a Pandas time interval string"
     )
+    parser.add_argument(
+        "bounds",
+        type=str,
+        default=None,
+        help="Optional bounding pixels in format (start_x_inclusive, start_y_inclusive, stop_x_exclusive, stop_y_exclusive)"
+    )
     parser.add_argument("image_file_path", help="The name of the path with the timestamped images")
     parser.add_argument("output_file_name", help="The name of the movie file to output")
     args = parser.parse_args()
@@ -96,6 +111,7 @@ if __name__ == "__main__":
         iso8601.parse_date(args.start_time),
         iso8601.parse_date(args.end_time),
         args.sample_freq,
+        args.bounds,
         Path(args.image_file_path),
         args.output_file_name,
     )
