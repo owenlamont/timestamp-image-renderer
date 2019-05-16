@@ -8,7 +8,7 @@ import pandas as pd
 import pytz
 
 from pathlib import Path
-from matplotlib.animation import FFMpegFileWriter
+from matplotlib.animation import FFMpegWriter
 from typing import List, Optional, Tuple
 
 IMAGE_WIDTH = 1024
@@ -56,7 +56,7 @@ def main(
     clock_axes = figure.add_axes([0.47, 0.055, 0.1, 0.1])
 
     time_range = pd.date_range(start=start_time, end=end_time, freq=sample_freq)
-    file_writer = FFMpegFileWriter(fps=12)
+    file_writer = FFMpegWriter(fps=12)
     with file_writer.saving(figure, output_file_name, dpi=100):
         for index, time_stamp in enumerate(time_range):
             img_axes.cla()
