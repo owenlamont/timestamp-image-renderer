@@ -28,7 +28,6 @@ def main(
     if bounds is not None:
         img_bounds = tuple([int(i) for i in bounds.strip(" \t()").split(",")])
 
-
     # Read all the satellite images (that are named with a date time) and create a new data series that selects
     # the closest time for the specified frame interval
     image_list: List[Path] = list(image_file_path.glob("*.jpg"))
@@ -53,35 +52,37 @@ def main(
 
     figure = plt.figure(figsize=(10.24, 10.24))
     img_axes = figure.add_axes([0.0, 0.0, 1.0, 1.0])
-    clock_axes = figure.add_axes([0.47, 0.055, 0.1, 0.1])
 
     time_range = pd.date_range(start=start_time, end=end_time, freq=sample_freq)
     file_writer = FFMpegWriter(fps=12)
     with file_writer.saving(figure, output_file_name, dpi=100):
         for index, time_stamp in enumerate(time_range):
             img_axes.cla()
-            clock_axes.cla()
 
             # Remove axes from image plots
             img_axes.set_axis_off()
-            clock_axes.set_axis_off()
 
             # Render the image
             image_index = image_df.index.get_loc(time_stamp, method="nearest")
             satellite_image: np.ndarray = plt.imread(image_df.iloc[image_index, 0])
             if img_bounds is not None:
-                img_axes.imshow(satellite_image[img_bounds[1]:img_bounds[3],img_bounds[0]:img_bounds[2]])
+                img_axes.imshow(
+                    satellite_image[
+                        img_bounds[1] : img_bounds[3], img_bounds[0] : img_bounds[2]
+                    ]
+                )
             else:
                 img_axes.imshow(satellite_image)
 
             # Render the time of day text
-            clock_axes.text(
-                0.0,
-                0.0,
-                f"Datetime\n{time_stamp}",
-                fontsize=32,
-                horizontalalignment="center",
-                color="tomato",
+            img_axes.text(
+                512.0,
+                40.0,
+                f"{time_stamp}",
+                fontsize=24,
+                ha="center",
+                va="top",
+                color="goldenrod",
             )
 
             file_writer.grab_frame()
@@ -102,9 +103,11 @@ if __name__ == "__main__":
         "bounds",
         type=str,
         default=None,
-        help="Optional bounding pixels in format (start_x_inclusive, start_y_inclusive, stop_x_exclusive, stop_y_exclusive)"
+        help="Optional bounding pixels in format (start_x_inclusive, start_y_inclusive, stop_x_exclusive, stop_y_exclusive)",
     )
-    parser.add_argument("image_file_path", help="The name of the path with the timestamped images")
+    parser.add_argument(
+        "image_file_path", help="The name of the path with the timestamped images"
+    )
     parser.add_argument("output_file_name", help="The name of the movie file to output")
     args = parser.parse_args()
     main(
