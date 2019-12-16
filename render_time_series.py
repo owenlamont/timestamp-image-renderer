@@ -52,15 +52,18 @@ def main(
 
     figure = plt.figure(figsize=(10.24, 10.24))
     img_axes = figure.add_axes([0.0, 0.0, 1.0, 1.0])
+    text_axes = figure.add_axes([0.0, 0.9, 1.0, 1.0])
 
     time_range = pd.date_range(start=start_time, end=end_time, freq=sample_freq)
     file_writer = FFMpegWriter(fps=12)
     with file_writer.saving(figure, output_file_name, dpi=100):
         for index, time_stamp in enumerate(time_range):
             img_axes.cla()
+            text_axes.cla()
 
             # Remove axes from image plots
             img_axes.set_axis_off()
+            text_axes.set_axis_off()
 
             # Render the image
             image_index = image_df.index.get_loc(time_stamp, method="nearest")
@@ -75,9 +78,9 @@ def main(
                 img_axes.imshow(satellite_image)
 
             # Render the time of day text
-            img_axes.text(
-                512.0,
-                40.0,
+            text_axes.text(
+                0.5,
+                0.0,
                 f"{time_stamp}",
                 fontsize=24,
                 ha="center",
